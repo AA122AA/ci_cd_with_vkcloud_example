@@ -1,5 +1,5 @@
 terraform {
-required_providers {
+  required_providers {
     openstack = {
       source  = "terraform-provider-openstack/openstack"
       version = "~> 1.46.0"
@@ -9,7 +9,7 @@ required_providers {
       version = "0.1.6"
     }
 
-}
+  }
 }
 #########################
 ##          Network
@@ -44,8 +44,8 @@ resource "openstack_networking_floatingip_v2" "myip" {
 }
 
 resource "openstack_compute_floatingip_associate_v2" "ip-test-instance" {
-  floating_ip = "${openstack_networking_floatingip_v2.myip.address}"
-  instance_id = "${openstack_compute_instance_v2.test-instance.id}"
+  floating_ip = openstack_networking_floatingip_v2.myip.address
+  instance_id = openstack_compute_instance_v2.test-instance.id
 }
 
 
@@ -63,8 +63,8 @@ resource "openstack_blockstorage_volume_v2" "test-volume" {
 
 resource "openstack_compute_instance_v2" "test-instance" {
   name              = "test-instance"
-  flavor_id         = "25ae869c-be29-4840-8e12-99e046d2dbd4"
-  key_pair          = "${var.keypair_name}"
+  flavor_id         = "df3c499a-044f-41d2-8612-d303adc613cc"
+  key_pair          = var.keypair_name
   availability_zone = "MS1"
   config_drive      = true
 
@@ -74,19 +74,19 @@ resource "openstack_compute_instance_v2" "test-instance" {
   ]
 
   block_device {
-    uuid                  = "${openstack_blockstorage_volume_v2.test-volume.id}"
+    uuid                  = openstack_blockstorage_volume_v2.test-volume.id
     source_type           = "volume"
     boot_index            = 0
     destination_type      = "volume"
     delete_on_termination = true
   }
 
-  metadata = {  
+  metadata = {
     env = "dev"
   }
 
   network {
-    uuid = "${openstack_networking_network_v2.generic.id}"
+    uuid = openstack_networking_network_v2.generic.id
   }
 }
 
@@ -97,8 +97,8 @@ resource "openstack_compute_instance_v2" "test-instance" {
 # Cозадаем instance СУБД
 resource "vkcs_db_instance" "db-instance" {
   name        = "db-instance"
-  keypair     = "${var.keypair_name}"
-  flavor_id   = "25ae869c-be29-4840-8e12-99e046d2dbd4"
+  keypair     = var.keypair_name
+  flavor_id   = "bf714720-78da-4271-ab7d-0cf5e2613f14"
   size        = 8
   volume_type = "ceph-ssd"
   disk_autoexpand {
@@ -106,21 +106,21 @@ resource "vkcs_db_instance" "db-instance" {
     max_disk_size = 1000
   }
 
-network {
-    uuid = "${openstack_networking_network_v2.generic.id}"
+  network {
+    uuid        = openstack_networking_network_v2.generic.id
     fixed_ip_v4 = "192.168.1.10"
-}
+  }
 
-datastore {
+  datastore {
     version = 13
     type    = "postgresql"
-}
+  }
 }
 
 resource "vkcs_db_database" "app" {
-  name        = "appdb"
-  dbms_id     = "${vkcs_db_instance.db-instance.id}"
-  charset     = "utf8"
+  name    = "appdb"
+  dbms_id = vkcs_db_instance.db-instance.id
+  charset = "utf8"
 }
 
 # Генерим пароль для базы
@@ -131,11 +131,11 @@ resource "random_string" "resource_code" {
 }
 
 resource "vkcs_db_user" "app_user" {
-  name        = "app_user"
-  password    = "${random_string.resource_code.result}"
-  dbms_id     = "${vkcs_db_instance.db-instance.id}"
-  
-  databases   = ["${vkcs_db_database.app.name}"]
+  name     = "app_user"
+  password = random_string.resource_code.result
+  dbms_id  = vkcs_db_instance.db-instance.id
+
+  databases = ["${vkcs_db_database.app.name}"]
 }
 
 #########################
