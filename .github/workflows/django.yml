@@ -24,11 +24,11 @@ jobs:
           password: ${{ secrets.DOCKERHUBPASS }}
       - name: "Build docker container"
         run: |
-          docker build . -t windblow/django_example:$GITHUB_SHA 
-          docker push windblow/django_example:$GITHUB_SHA
+          docker build . -t aa122aa/django_example:$GITHUB_SHA 
+          docker push aa122aa/django_example:$GITHUB_SHA
       - name: "Execute tests in container"
         run: |
-          docker run windblow/django_example:$GITHUB_SHA python manage.py test
+          docker run aa122aa/django_example:$GITHUB_SHA python manage.py test
   deploy:
     needs: [build]
     runs-on: self-hosted
