@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Login to GitHub
-        run: docker login -u "aa122aa" -p ${{ secrets.DOCKERHUBPASS }}
+        run: docker login -u "aa122aa" -p '${{ secrets.DOCKERHUBPASS }}'
       - name: "Build docker container"
         run: |
           docker build . -t windblow/django_example:$GITHUB_SHA 
